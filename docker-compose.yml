@@ -1,0 +1,51 @@
+version: '3'
+services:
+  db_service:
+    container_name: fpay_mariadb
+    env_file: .env
+    image: mariadb:10.7.8-focal
+    ports:
+      - 3306:3306
+    expose:
+      - 3306
+    volumes:
+      - ./db/mariadb/data:/var/lib/mysql:rw
+      - ./db/script.sql:/docker-entrypoint-initdb.d/script.sql:ro
+    restart: always
+    networks:
+      - prestashop_network_1.7-8.3
+  
+  web:
+    image: "prestashop/prestashop:1.7.8.3"
+    container_name: fpay_prestashop_1.7-8.3
+    environment:
+      - PS_LANGUAGE=es
+      - PS_INSTALL_AUTO=${PS_INSTALL_AUTO}
+      - PS_DEV_MODE=1
+      - PS_DOMAIN=localhost:8080
+      - ADMIN_MAIL=admin@admin.com
+      - ADMIN_PASSWD=password
+      - PS_FOLDER_ADMIN=adminop
+      - PS_FOLDER_INSTALL=installop
+      - PS_COUNTRY=cl
+      - DB_NAME=prestashop
+      - DB_SERVER=db_service
+      - DB_PASSWD=admin
+      - PS_ERASE_DB=0
+    ports:
+      - "8080:80"
+    volumes:
+      - ./prestashop/html_data:/var/www/html/  
+      #- ./prestashop/log:/var/log:ro
+    expose:
+      - 8080
+    links:
+      - db_service:db_service
+    depends_on:
+      - db_service
+    networks:
+      - prestashop_network_1.7-8.3
+
+networks:
+  prestashop_network_1.7-8.3:
+    driver: bridge

@@ -1,0 +1,4 @@
+./prestashop/html_data/*
+./db/mariadb/
+.DS_Store
+.vscode
