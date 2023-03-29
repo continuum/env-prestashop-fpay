@@ -1,4 +1,6 @@
 prestashop/*
+wordpress/*
 db/mariadb/
+db/mysql/
 .DS_Store
 .vscode
