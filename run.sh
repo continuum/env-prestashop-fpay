@@ -3,6 +3,12 @@ ENV_FILE=".env"
 ENV_TMP_FILE=".env-tmp"
 ROOT_DIR=$PWD
 
+function create_env {
+  echo "Creando archivo $ENV_FILE"
+  cp -v example.env $ENV_FILE
+}
+
+
 function _clean_version {
   # Parametro $1 para recibir nombre de db mas version,
   # ejemplos: mariadb/1.7.8.3-7.4-5.6  mysql/1.7.3.3-7.1-5.6
@@ -56,6 +62,11 @@ function _show_message_valida(){
 }
 
 function build(){
+  if [ -f .env ];then
+    echo "Archivo .env existe"
+  else
+    create_env
+  fi
   _load_env
   #Se definen las siguientes variables
   printf "\n"
@@ -84,8 +95,8 @@ function build(){
 
   if [ "$Prestashop_version" = "" ];then
     if [ "$Wordpress_version" = "" ];then
-      echo "No se indico version para Prestashop, se ocupara por defecto la version $DEFAULT_Prestashop_version"
-      Prestashop_version="$DEFAULT_Prestashop_version"
+      echo "No se indico version para Prestashop, se ocupara por defecto la version $Prestashop_DEFAULT_version"
+      Prestashop_version="$Prestashop_DEFAULT_version"
     else
       echo "Version ingresada para Wordpress: $Wordpress_version"
       ecommerce_deploy="wordpress"
@@ -96,8 +107,8 @@ function build(){
 
 
   if [ "$PHP_version" = "" ];then
-    echo "No se indico version para PHP, se ocupara por defecto la version $DEFAULT_PHP_version"
-    PHP_version="$DEFAULT_PHP_version"
+    echo "No se indico version para PHP, se ocupara por defecto la version $PHP_DEFAULT_version"
+    PHP_version="$PHP_DEFAULT_version"
   else
     echo "Version ingresada para PHP: $PHP_version"
   fi
@@ -105,8 +116,8 @@ function build(){
 
   if [ "$MariaDB_version" = "" ];then
     if [ "$MYSQL_version" = "" ];then
-      echo "No se indico version para MariaDB, se ocupara por defecto la version $DEFAULT_MariaDB_version"
-      MariaDB_version="$DEFAULT_MariaDB_version"
+      echo "No se indico version para MariaDB, se ocupara por defecto la version $MariaDB_DEFAULT_version"
+      MariaDB_version="$MariaDB_DEFAULT_version"
     else
       echo "Version ingresada para MySql: $MYSQL_version"
       db_deploy="mysql"

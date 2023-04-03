@@ -40,17 +40,21 @@ Para poder parametrizar el build con distintas veriones de PHP Prestashop y MySq
 <ul>
   <li>-p para versión de PHP ejemplo 7.4 </li>
   <li>-e para versión de Prestashop ejemplo 1.7.8.3 </li>
-  <li>-m para versión de Mysql </li>
+  <li>-m para versión de MariaDb  ejemplo 10.7.8 </li>
+  <li>-y para versión de Mysql ejemplo 5.6 </li>
+  <li>-w para versión de Wordpress ejemplo 1.7.8.3 </li>
+
 
 </ul>
 
 ```bash
-run build -p 7.3 -e 1.7.8.3 -m 5.6
+./run.sh build -p 7.3 -e 1.7.8.3 -y 5.6 #EXAMPLE PRESTASHOP
+./run.sh build -p 7.4 -w 6.1 -m 10.7.3 #EXAMPLE WORDPRESS
 ```
 #### Start
 
 ```bash
-run start
+./run.sh start
 ```
 
 Si se desea desplegar sin visualizar los logs por pantalla en modo detach ejecutar con el parametro -d
