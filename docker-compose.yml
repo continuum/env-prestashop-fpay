@@ -8,9 +8,9 @@ services:
     image: "${IMAGE_DB}"
 
     ports:
-      - 3306:3306
+      - ${PORT_DEFAULT_DB}:3306
     expose:
-      - 3306
+      - ${PORT_DEFAULT_DB}
     volumes:
       - ./db/${PATH_DATA_DB}:/var/lib/mysql:rw
       - ./db/script.sql:/docker-entrypoint-initdb.d/script.sql:ro
@@ -27,7 +27,7 @@ services:
       - PS_LANGUAGE=es
       - PS_INSTALL_AUTO=${PS_INSTALL_AUTO}
       - PS_DEV_MODE=1
-      - PS_DOMAIN=localhost:8080
+      - PS_DOMAIN="localhost:${PORT_DEFAULT_WEB}"
       - ADMIN_MAIL=admin@admin.com
       - ADMIN_PASSWD=password
       - PS_FOLDER_ADMIN=adminop
@@ -36,19 +36,21 @@ services:
       - DB_NAME=prestashop
       - DB_SERVER=db_service
       - DB_PASSWD=admin
+      #- DB_PORT=${PORT_DEFAULT_DB}
       - PS_ERASE_DB=0
 
       - WORDPRESS_DB_HOST=db_service
+      - WORDPRESS_DB_PORT=${PORT_DEFAULT_DB}
       - WORDPRESS_DB_USER=root
       - WORDPRESS_DB_PASSWORD=admin
       - WORDPRESS_DB_NAME=prestashop
     ports:
-      - "8080:80"
+      - "${PORT_DEFAULT_WEB}:80"
     volumes:
       - ./${PATH_DATA_ECOMM}:/var/www/html/
       #- ./prestashop/log:/var/log:ro
     expose:
-      - 8080
+      - ${PORT_DEFAULT_WEB}
     links:
       - db_service:db_service
     depends_on:

@@ -2,10 +2,12 @@
 ENV_FILE=".env"
 ENV_TMP_FILE=".env-tmp"
 ROOT_DIR=$PWD
+SEDOPTION="-i"
+
 
 function create_env {
   echo "Creando archivo $ENV_FILE"
-  cp -v example.env $ENV_FILE
+  cp -v example.env $ENV_FILE && echo "Archivo $ENV_FILE creado"
 }
 
 
@@ -61,6 +63,23 @@ function _show_message_valida(){
   return $version
 }
 
+function _set_sed_option(){
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    SEDOPTION="-i \'\' "
+    echo "En OSX"
+  else
+    echo "En linux"
+  fi
+}
+
+function _sed_envs(){
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    sed -i '' "s/${1}/g" .env
+  else
+    sed -i "s/${1}/g" .env
+  fi
+}
+
 function build(){
   if [ -f .env ];then
     echo "Archivo .env existe"
@@ -80,7 +99,6 @@ function build(){
   db_deploy="mariadb" #db by default
   path_ecommerce_version=""
   path_db_version=""
-
 
   while getopts "w:e:p:y:m:" arg; do
     case $arg in
@@ -125,34 +143,39 @@ function build(){
   else
     echo "Version ingresada para MySql: $MariaDB_version"
   fi
-
   printf "\n"
   echo "validando imagenes ..."
+
   if [ "$ecommerce_deploy" = "prestashop" ];then
-     _valida_imagen "prestashop/prestashop:$Prestashop_version-$PHP_version-apache"
-    sed -i '' "s/IMAGE_ECOMMERCE=.*/IMAGE_ECOMMERCE=${ecommerce_deploy}\/${ecommerce_deploy}:${Prestashop_version}-${PHP_version}-apache/g" .env
+    _valida_imagen "prestashop/prestashop:$Prestashop_version-$PHP_version-apache"
+   _sed_envs "IMAGE_ECOMMERCE=.*/IMAGE_ECOMMERCE=${ecommerce_deploy}\/${ecommerce_deploy}:${Prestashop_version}-${PHP_version}-apache"
+    
+      #sed -i "s/IMAGE_ECOMMERCE=.*/IMAGE_ECOMMERCE=${ecommerce_deploy}\/${ecommerce_deploy}:${Prestashop_version}-${PHP_version}-apache/g" .env
     path_ecommerce_version="$Prestashop_version"
   else
      _valida_imagen "wordpress:${Wordpress_version}-php$PHP_version-apache"
-    sed -i '' "s/IMAGE_ECOMMERCE=.*/IMAGE_ECOMMERCE=${ecommerce_deploy}\:${Wordpress_version}-php${PHP_version}-apache/g" .env
+    _sed_envs "IMAGE_ECOMMERCE=.*/IMAGE_ECOMMERCE=${ecommerce_deploy}\:${Wordpress_version}-php${PHP_version}-apache"
     path_ecommerce_version="$Wordpress_version"
   fi
+  # file_el=".env\""
+  # rm -f "$file_el"
 
+#exit 0
 
   if [ "$db_deploy" = "mariadb" ];then
     _valida_imagen "mariadb:$MariaDB_version-focal"
-    sed -i '' "s/IMAGE_DB=.*/IMAGE_DB=${db_deploy}\:${MariaDB_version}-focal/g" .env
+    _sed_envs "IMAGE_DB=.*/IMAGE_DB=${db_deploy}\:${MariaDB_version}-focal"
     path_db_version="$MariaDB_version"
   else
     _valida_imagen "mysql:$MYSQL_version"
-    sed -i '' "s/IMAGE_DB=.*/IMAGE_DB=${db_deploy}\:${MYSQL_version}/g" .env
+    _sed_envs "IMAGE_DB=.*/IMAGE_DB=${db_deploy}\:${MYSQL_version}"
     path_db_version="$MYSQL_version"
   fi
 
-  sed -i '' "s/PATH_DATA_ECOMM=.*/PATH_DATA_ECOMM=${ecommerce_deploy}\/${path_ecommerce_version}-${PHP_version}-${path_db_version}\/html_data/g" .env
-  sed -i '' "s/CONTAINER_NAME_ECOMMERCE=.*/CONTAINER_NAME_ECOMMERCE=FPAY_${ecommerce_deploy}-${path_ecommerce_version}-${PHP_version}-${path_db_version}/g" .env
-  sed -i '' "s/PATH_DATA_DB=.*/PATH_DATA_DB=${db_deploy}\/${path_ecommerce_version}-${PHP_version}-${path_db_version}\/data/g" .env
-  sed -i '' "s/CONTAINER_NAME_DB=.*/CONTAINER_NAME_DB=FPAY_${db_deploy}-${path_ecommerce_version}-${PHP_version}-${path_db_version}/g" .env
+  _sed_envs "PATH_DATA_ECOMM=.*/PATH_DATA_ECOMM=${ecommerce_deploy}\/${path_ecommerce_version}-${PHP_version}-${path_db_version}\/html_data"
+  _sed_envs "CONTAINER_NAME_ECOMMERCE=.*/CONTAINER_NAME_ECOMMERCE=FPAY_${ecommerce_deploy}-${path_ecommerce_version}-${PHP_version}-${path_db_version}"
+  _sed_envs "PATH_DATA_DB=.*/PATH_DATA_DB=${db_deploy}\/${path_ecommerce_version}-${PHP_version}-${path_db_version}\/data"
+  _sed_envs "CONTAINER_NAME_DB=.*/CONTAINER_NAME_DB=FPAY_${db_deploy}-${path_ecommerce_version}-${PHP_version}-${path_db_version}"
 
 
   if [ -d $ecommerce_deploy/$path_ecommerce_version-$PHP_version-$path_db_version ];then
@@ -179,15 +202,15 @@ function build(){
     done
   fi
 
-  sed -i '' "s/PHP_version=.*/PHP_version=${PHP_version}/g" .env
-  sed -i '' "s/MYSQL_version=.*/MYSQL_version=${MYSQL_version}/g" .env
-  sed -i '' "s/MariaDB_version=.*/MariaDB_version=${MariaDB_version}/g" .env
-  sed -i '' "s/Wordpress_version=.*/Wordpress_version=${Wordpress_version}/g" .env
-  sed -i '' "s/Prestashop_version=.*/Prestashop_version=${Prestashop_version}/g" .env
+  _sed_envs "PHP_version=.*/PHP_version=${PHP_version}"
+  _sed_envs "MYSQL_version=.*/MYSQL_version=${MYSQL_version}"
+  _sed_envs "MariaDB_version=.*/MariaDB_version=${MariaDB_version}"
+  _sed_envs "Wordpress_version=.*/Wordpress_version=${Wordpress_version}"
+  _sed_envs "Prestashop_version=.*/Prestashop_version=${Prestashop_version}"
 
   # function build
   echo "Creando build para contendores Fpay - Prestashop"
-  sed -i '' "s/PS_INSTALL_AUTO=.*/PS_INSTALL_AUTO=1/g" .env
+  _sed_envs "PS_INSTALL_AUTO=.*/PS_INSTALL_AUTO=1"
   docker-compose --env-file ./.env up --build --force-recreate --no-deps
 }
 
@@ -212,7 +235,7 @@ function _message_print(){
 
 
 function start {
-  sed -i '' "s/PS_INSTALL_AUTO=.*/PS_INSTALL_AUTO=0/g" .env
+  _sed_envs "PS_INSTALL_AUTO=.*/PS_INSTALL_AUTO=0"
   echo "✅ Iniciando Servicios 🚀"
   _load_env
   if [ "$Wordpress_version" = "" ] && [ "$Prestashop_version" = "" ]; then
@@ -224,6 +247,8 @@ function start {
     echo "Prestashop_version=${Prestashop_version}"
     echo "MYSQL_version=${MYSQL_version}"
     echo "MariaDB_version=${MariaDB_version}"
+    echo "PORT_DEFAULT_WEB=${PORT_DEFAULT_WEB}"
+    echo "PORT_DEFAULT_DB=${PORT_DEFAULT_DB}"
 
     if [ "$1" = "-d" ];then
       echo "🖇️  Mode detach  ***Para detener ejecutar comando \"run.sh stop\""
