@@ -3,10 +3,7 @@ services:
   db_service:
     container_name: "${CONTAINER_NAME_DB}"
     env_file: .env
-    # image: mariadb:10.7.8-focal
-    #image: "mysql:${MYSQL_version}"
     image: "${IMAGE_DB}"
-
     ports:
       - ${PORT_DEFAULT_DB}:3306
     expose:
@@ -19,7 +16,6 @@ services:
       - fpay_network
   
   web:
-    #image: "prestashop/prestashop:${Prestashop_version}-${PHP_version}-apache"
     image: "${IMAGE_ECOMMERCE}"
 
     container_name: "${CONTAINER_NAME_ECOMMERCE}"
@@ -27,7 +23,7 @@ services:
       - PS_LANGUAGE=es
       - PS_INSTALL_AUTO=${PS_INSTALL_AUTO}
       - PS_DEV_MODE=1
-      - PS_DOMAIN="localhost:${PORT_DEFAULT_WEB}"
+      - PS_DOMAIN=localhost:${PORT_DEFAULT_WEB}
       - ADMIN_MAIL=admin@admin.com
       - ADMIN_PASSWD=password
       - PS_FOLDER_ADMIN=adminop
