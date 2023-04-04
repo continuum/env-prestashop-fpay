@@ -14,8 +14,6 @@
 git clone git@github.com:continuum/env-prestashop-fpay.git && cd env-prestashop-fpay && ./run.sh build
 ```
 
-
-
 ### Instalacion paso a paso
 #### Clonar/Descargar repositorio
 
@@ -62,3 +60,41 @@ Si se desea desplegar sin visualizar los logs por pantalla en modo detach ejecut
 ```bash
 ./run.sh start -d
 ```
+
+#### Stop
+Para detener los contenedores desplegados ejecute el siguiente comando:
+
+```bash
+./run.sh stop
+```
+
+####  Valores por defecto
+##### Versiones por defecto
+La configuración por defecto del ecommerce y db se encuentran en el archivo ```.env```. Para crear este archivo ejecute:
+
+```bash
+./run.sh create_env
+```
+
+En este archivo encontrara las variables donde puede especificar las versiones por defecto que desea desplegar, los valores por defecto son:
+```
+#Default version
+PHP_DEFAULT_version=7.4
+Prestashop_DEFAULT_version=1.7.8.3
+MariaDB_DEFAULT_version=10.7.8
+```
+##### Puertos por defecto
+
+En  el archivo ```.env``` tambien encontrara las variables donde puede especificar los puertos por defecto que desea desplegar tanto de base de datos como de servidor web, los valores por defecto son:
+```
+PORT_DEFAULT_WEB=8080
+PORT_DEFAULT_DB=3306
+```
+
+#### Eliminar datos
+Para eliminar toda la data de los contenedores creados puede ejecutar el siguiente comando:
+
+```bash
+./run.sh _clean_all
+```
+Ocupar con precaución, no es posible recuperar data una vez eliminada.
