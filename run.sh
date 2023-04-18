@@ -12,14 +12,18 @@ function create_env {
 
 
 function _clean_version {
+  issudo="sudo"
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    issudo=""
+  fi
   # Parametro $1 para recibir nombre de db mas version,
   # ejemplos: mariadb/1.7.8.3-7.4-5.6  mysql/1.7.3.3-7.1-5.6
-  rm -rf ./db/"$1"
-  echo "elminada carpeta /db/$1"
+  "$issudo" rm -rf ./db/"$1"
+  echo "elminada carpeta $issudo /db/$1"
   # Parametro $2 para recibir ecommerce mas version,
   # ejemplos: prestashop/1.7.8.3-7.4-5.6  wordpress/7.2.4-7.1-5.6
-  rm -rf ./"$2"
-  echo "elminada carpeta $2"
+  "$issudo" rm -rf ./"$2"
+  echo "elminada carpeta $issudo  $2"
 
 }
 
@@ -78,6 +82,13 @@ function _sed_envs(){
   else
     sed -i "s/${1}/g" .env
   fi
+}
+
+function _sed_ui(){
+  _uid="$(id -u)"
+  _gid="$(id -g)"
+  _sed_envs "UID=.*/UID=${_uid}"
+  _sed_envs "GID=.*/GID=${_gid}"
 }
 
 function build(){
@@ -197,7 +208,7 @@ function build(){
       case $sn in
           [Ss]* ) _clean_version "$db_deploy/$path_ecommerce_version-$PHP_version-$path_db_version" "$ecommerce_deploy/$path_ecommerce_version-$PHP_version-$path_db_version"; break;;
           [Nn]* ) echo "Ok archivos se mantienen"; break;;
-          * ) echo "Porfavor responder con si o no.";;
+          * ) echo "Por favor responder con si o no.";;
       esac
     done
   fi
@@ -208,10 +219,48 @@ function build(){
   _sed_envs "Wordpress_version=.*/Wordpress_version=${Wordpress_version}"
   _sed_envs "Prestashop_version=.*/Prestashop_version=${Prestashop_version}"
 
+  _sed_ui
+
   # function build
   echo "Creando build para contendores Fpay - Prestashop"
   _sed_envs "PS_INSTALL_AUTO=.*/PS_INSTALL_AUTO=1"
-  docker-compose --env-file ./.env up --build --force-recreate --no-deps
+
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+      docker-compose --env-file ./.env up --build --force-recreate --no-deps
+  else
+      docker-compose --env-file ./.env up --build --force-recreate --no-deps -d
+      container_name="FPAY_${ecommerce_deploy}-${path_ecommerce_version}-${PHP_version}-${path_db_version}"
+      container_data="${ecommerce_deploy}/${path_ecommerce_version}-${PHP_version}-${path_db_version}/html_data"
+
+      while :;
+        do
+        if [ "$(docker inspect -f {{.State.Running}} ${container_name})" == "true" ]; then
+          logs=$(docker logs ${container_name} 2>&1 | grep 'apache2 -D FOREGROUND')
+          current_logs=$(docker logs ${container_name} 2>&1)
+          if [ "${logs}" == "" ]; then
+            printf "${current_logs} \n"
+            sleep 1
+          else
+            printf "servicio web is running ...\n"
+            break
+          fi
+        else
+          printf "esperando que contendor inicie...\n"
+          sleep 1
+        fi
+      done
+
+      if [ "$ecommerce_deploy" = "prestashop" ];then
+        sudo chown $(whoami):$(whoami) -R ${container_data}/modules/
+      else
+        sudo chown $(whoami):$(whoami) -R ${container_data}/wp-content/plugins/
+      fi
+
+      printf "Build finalizado \n"
+      docker-compose logs -f
+      stop
+  fi
+
 }
 
 function _message_print(){
