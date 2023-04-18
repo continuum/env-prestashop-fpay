@@ -1,28 +1,29 @@
 version: '3'
 services:
   db_service:
-    container_name: fpay_mariadb
+    container_name: "${CONTAINER_NAME_DB}"
     env_file: .env
-    image: mariadb:10.7.8-focal
+    image: "${IMAGE_DB}"
     ports:
-      - 3306:3306
+      - ${PORT_DEFAULT_DB}:3306
     expose:
-      - 3306
+      - ${PORT_DEFAULT_DB}
     volumes:
-      - ./db/mariadb/data:/var/lib/mysql:rw
+      - ./db/${PATH_DATA_DB}:/var/lib/mysql:rw
       - ./db/script.sql:/docker-entrypoint-initdb.d/script.sql:ro
     restart: always
     networks:
-      - prestashop_network_1.7-8.3
+      - fpay_network
   
   web:
-    image: "prestashop/prestashop:1.7.8.3"
-    container_name: fpay_prestashop_1.7-8.3
+    image: "${IMAGE_ECOMMERCE}"
+
+    container_name: "${CONTAINER_NAME_ECOMMERCE}"
     environment:
       - PS_LANGUAGE=es
       - PS_INSTALL_AUTO=${PS_INSTALL_AUTO}
       - PS_DEV_MODE=1
-      - PS_DOMAIN=localhost:8080
+      - PS_DOMAIN=localhost:${PORT_DEFAULT_WEB}
       - ADMIN_MAIL=admin@admin.com
       - ADMIN_PASSWD=password
       - PS_FOLDER_ADMIN=adminop
@@ -31,21 +32,36 @@ services:
       - DB_NAME=prestashop
       - DB_SERVER=db_service
       - DB_PASSWD=admin
+      #- DB_PORT=${PORT_DEFAULT_DB}
       - PS_ERASE_DB=0
+
+      - WORDPRESS_DB_HOST=db_service
+      - WORDPRESS_DB_PORT=${PORT_DEFAULT_DB}
+      - WORDPRESS_DB_USER=root
+      - WORDPRESS_DB_PASSWORD=admin
+      - WORDPRESS_DB_NAME=prestashop
     ports:
-      - "8080:80"
+      - "${PORT_DEFAULT_WEB}:80"
     volumes:
-      - ./prestashop/html_data:/var/www/html/  
+      - ./${PATH_DATA_ECOMM}:/var/www/html/
       #- ./prestashop/log:/var/log:ro
     expose:
-      - 8080
+      - ${PORT_DEFAULT_WEB}
     links:
       - db_service:db_service
     depends_on:
       - db_service
     networks:
-      - prestashop_network_1.7-8.3
+      - fpay_network
+    # deploy:
+    #   resources:
+    #       limits:
+    #         cpus: 0.50
+    #         memory: 512M
+    #       reservations:
+    #         cpus: 0.25
+    #         memory: 128M
 
 networks:
-  prestashop_network_1.7-8.3:
+  fpay_network:
     driver: bridge
