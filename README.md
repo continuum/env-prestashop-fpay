@@ -1,8 +1,8 @@
-# Ambientes Prestashop Test FPay
+# Ambientes Prestashop y Wordpress Test FPay
 
 ### * Requerimientos
 <ul>
-  <li>Docker</li>
+  <li>Docker y cuenta valida en https://hub.docker.com</li>
   <li>docker-compose</li>
   <li>git</li>
 </ul>
@@ -55,10 +55,16 @@ Para poder parametrizar el build con distintas veriones de PHP Prestashop y MySq
 ./run.sh start
 ```
 
-Si se desea desplegar sin visualizar los logs por pantalla en modo detach ejecutar con el parametro -d
+Si desea desplegar sin visualizar los logs por pantalla en modo detach ejecutar con el parametro -d
 
 ```bash
 ./run.sh start -d
+```
+
+Si inicio con modo detach y necesita ver logs de los contendores ejecute lo siguiente
+
+```bash
+./run.sh logs
 ```
 
 #### Stop
@@ -68,7 +74,7 @@ Para detener los contenedores desplegados ejecute el siguiente comando:
 ./run.sh stop
 ```
 
-####  Valores por defecto
+###  Valores por defecto
 ##### Versiones por defecto
 La configuración por defecto del ecommerce y db se encuentran en el archivo ```.env```. Para crear este archivo ejecute:
 
@@ -97,4 +103,7 @@ Para eliminar toda la data de los contenedores creados puede ejecutar el siguien
 ```bash
 ./run.sh _clean_all
 ```
-Ocupar con precaución, no es posible recuperar data una vez eliminada.
+
+######*** En ambientes linux como Ubuntu puede requerir permisos de super usuario o root (sudo) para eliminar estas carpetas.
+
+######*** Ocupar con precaución, no es posible recuperar data una vez eliminada.

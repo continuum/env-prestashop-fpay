@@ -315,6 +315,10 @@ function stop {
   echo "Contenedores removidos correctamente ✅"
 }
 
+function logs {
+  echo "Atachando a logs ..."
+  docker-compose logs
+}
 
 function test {
   echo "Ejecutar Test..."
