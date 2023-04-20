@@ -260,8 +260,25 @@ function build(){
       docker-compose logs -f
       stop
   fi
-
 }
+
+function _fix_permision_fpay(){
+  _load_env
+  printf "Validadando si carpeta $PATH_DATA_ECOMM existe\n"
+  if [ -d "$PATH_DATA_ECOMM" ];then
+    printf "Encontrada \n"
+    ecommerce=${PATH_DATA_ECOMM:0:10}
+    printf "ecoomerce encontrado: $ecommerce\n"
+    if [ "$ecommerce" = "prestashop" ];then
+      sudo chown $(whoami):www-data -R ${PATH_DATA_ECOMM}/modules/fpay/
+      sudo chmod 777 -R ${PATH_DATA_ECOMM}//modules/fpay/src/logs/
+    else
+      sudo chown $(whoami):www-data -R ${container_data}/wp-content/plugins/fpay/
+      sudo chmod 777 -R ${container_data}/wp-content/plugins/fpay/logs/
+    fi
+  fi
+}
+
 
 function _message_print(){
   if [ "$ecommerce_deploy" = "wordpress" ];then
